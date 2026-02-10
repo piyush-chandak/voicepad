@@ -25,8 +25,19 @@ const DraftEditor = (() => {
   let draftId = null;
   const titleInput = document.getElementById('titleInput');
   const contentInput = document.getElementById('contentInput');
-  function load(note) { draftId = note.id; titleInput.value = note.title; contentInput.value = note.content; }
-  function clear() { draftId = null; titleInput.value = ''; contentInput.value = ''; }
+
+  function load(note) {
+    draftId = note.id;
+    titleInput.value = note.title;
+    contentInput.value = note.content;
+  }
+
+  function clear() {
+    draftId = null;
+    titleInput.value = '';
+    contentInput.value = '';
+  }
+
   function getDraft() {
     return {
       id: draftId ?? crypto.randomUUID(),
@@ -35,8 +46,31 @@ const DraftEditor = (() => {
       updatedAt: new Date().toISOString()
     };
   }
+
   return { load, clear, getDraft };
 })();
+
+/* ===========================
+   Clipboard
+=========================== */
+const Clipboard = (() => ({
+  copy(text) {
+    if (!text) return;
+    navigator.clipboard.writeText(text)
+      .then(() => UI.setStatus('Copied!'))
+      .catch(err => console.error('Clipboard error:', err));
+    setTimeout(() => UI.setStatus('Idle'), 1000);
+  },
+  copyDraft() {
+    const text = document.getElementById('contentInput').value.trim();
+    if (!text) return;
+    Clipboard.copy(text);
+  },
+  copyNote(note) {
+    if (!note?.content) return;
+    Clipboard.copy(note.content);
+  }
+}))();
 
 /* ===========================
    Notes List
@@ -44,6 +78,7 @@ const DraftEditor = (() => {
 const NotesList = (() => {
   const container = document.getElementById('notesList');
   const countEl = document.getElementById('noteCount');
+
   function render() {
     const notes = Store.getAll();
     container.innerHTML = '';
@@ -51,17 +86,38 @@ const NotesList = (() => {
 
     notes.forEach(note => {
       const card = document.createElement('div');
-      card.className = 'note-card p-4 rounded-xl bg-white shadow cursor-pointer border border-slate-100 flex justify-between items-start';
+      card.className = 'note-card p-4 rounded-xl bg-white shadow cursor-pointer border border-slate-100 flex justify-between items-start relative';
+      
       card.innerHTML = `
-        <div onclick="DraftEditor.load(${JSON.stringify(note)})" class="flex-1 cursor-pointer">
+        <div class="flex-1 cursor-pointer">
           <h3 class="font-semibold mb-1">${note.title}</h3>
           <p class="text-sm text-slate-500 line-clamp-3">${note.content}</p>
         </div>
-        <button class="text-red-500 font-bold ml-2" onclick="Store.remove('${note.id}'); NotesList.render();">×</button>
+        <div class="flex gap-1">
+          <button class="text-blue-500 font-medium" title="Copy Note">📋</button>
+          <button class="text-red-500 font-bold" title="Delete Note">×</button>
+        </div>
       `;
+
+      const [copyBtn, deleteBtn] = card.querySelectorAll('button');
+
+      copyBtn.onclick = (e) => {
+        e.stopPropagation();
+        Clipboard.copyNote(note);
+      };
+
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        Store.remove(note.id);
+        render();
+      };
+
+      card.querySelector('div.flex-1').onclick = () => DraftEditor.load(note);
+
       container.appendChild(card);
     });
   }
+
   return { render };
 })();
 
@@ -198,7 +254,22 @@ const UI = (() => {
     SpeechService.start(document.getElementById('languageSelect').value);
   };
 
-  document.getElementById('stopBtn').onclick = () => { SpeechService.stop(); Waveform.stop(); };
-  document.getElementById('saveBtn').onclick = () => { Store.upsert(DraftEditor.getDraft()); NotesList.render(); };
-  document.getElementById('clearBtn').onclick = () => { DraftEditor.clear(); SpeechService.clear(); };
+  document.getElementById('stopBtn').onclick = () => { 
+    SpeechService.stop(); 
+    Waveform.stop(); 
+  };
+
+  document.getElementById('saveBtn').onclick = () => { 
+    Store.upsert(DraftEditor.getDraft()); 
+    NotesList.render(); 
+  };
+
+  document.getElementById('clearBtn').onclick = () => { 
+    DraftEditor.clear(); 
+    SpeechService.clear(); 
+  };
+
+  document.getElementById('copyBtn').onclick = () => { 
+    Clipboard.copyDraft(); 
+  };
 })();
