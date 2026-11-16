@@ -1,211 +1,592 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoicePad | Speak. Save. Remember</title>
 
-    <!-- SEO Meta -->
-    <meta name="description" content="A web-based voice note app that lets you speak, see live transcripts with punctuation, and save your notes." />
-    <meta name="keywords" content="voice notes, speech to text, AI punctuation, audio transcription, note-taking app" />
-    <meta name="author" content="Piyush Chandak" />
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>VoicePad | Speak. Save. Remember </title>
 
-    <!-- Open Graph / Social Share -->
-    <meta property="og:title" content="VoicePad | Speak. Save. Remember" />
-    <meta property="og:description" content="A web-based voice note app that lets you speak, see live transcripts with punctuation, and save your notes." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://piyush-chandak.github.io/voicepad" />
-    <meta property="og:image" content="https://piyush-chandak.github.io/voicepad/apple-touch-icon.png" />
+  <!-- SEO Meta -->
+  <meta name="description"
+    content="A  web-based voice note app that works offline. Speak naturally, see live transcripts with smart punctuation, and save notes." />
+  <meta name="keywords"
+    content="voice notes, speech to text, offline voice notes, PWA voice recorder, note-taking app, mobile voice memo" />
+  <meta name="author" content="Piyush Chandak" />
+  <meta name="theme-color" content="#2563eb">
 
-    <!-- Favicon (classic) -->
-    <link rel="icon" href="/favicon.ico" sizes="any">
+  <!-- PWA Web App Manifest & iOS Meta -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="VoicePad">
 
-    <!-- PNG favicons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <!-- Open Graph / Social Share -->
+  <meta property="og:title" content="VoicePad |  Offline Voice Notes" />
+  <meta property="og:description" content="Speak naturally. Save instantly. Works offline like a native app." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://piyush-chandak.github.io/voicepad" />
+  <meta property="og:image" content="./apple-touch-icon.png" />
 
-    <!-- Apple Touch Icon (iOS home screen) -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <!-- Favicons -->
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
 
-    <!-- Shortcut icon (legacy, still supported) -->
-    <link rel="shortcut icon" href="/favicon.ico">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class'
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
       }
-    </script>
+    }
+  </script>
 
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-      body { font-family: 'Inter', sans-serif; }
-      .waveform-container { height: 60px; transition: all 0.3s ease; }
-      .note-card:hover { transform: translateY(-2px); }
-    </style>
-  </head>
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
-  <body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-300">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-  <div id="app" class="max-w-screen-2xl mx-auto px-4 py-8 md:px-8">
+    .waveform-canvas {
+      height: 52px;
+      transition: all 0.25s ease;
+    }
+
+    .note-card {
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+    }
+
+    .note-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Custom scrollbar for notes and editor */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 9999px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.4);
+    }
+
+    /* Pulsing recording animation */
+    @keyframes recordPulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.08);
+        opacity: 0.85;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .recording-pulse {
+      animation: recordPulse 1.8s infinite ease-in-out;
+    }
+
+    /* Toast styling animations */
+    .toast-enter {
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .toast-exit {
+      animation: toastOut 0.25s ease-in forwards;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes toastOut {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateY(10px) scale(0.96);
+      }
+    }
+  </style>
+</head>
+
+<body
+  class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased selection:bg-blue-500 selection:text-white">
+
+  <!-- Toast Container -->
+  <div id="toastContainer"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4">
+  </div>
+
+  <div id="app" class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex flex-col min-h-screen">
+
     <!-- Header -->
-    <header class="flex justify-between items-center mb-10">
-      <div>
-        <h1 class="text-3xl font-bold tracking-tight dark:text-white">VoicePad</h1>
-        <p class="text-md text-slate-500 dark:text-slate-400">Speak. Save. Remember</p>
-      </div>
+    <header
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8 pb-4 border-b border-slate-200 dark:border-slate-800">
       <div class="flex items-center gap-3">
-        <!-- Theme Toggle -->
-        <button id="themeToggleBtn" class="p-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 text-lg transition-all" title="Toggle Light/Dark Mode">
-          🌙
+        <div
+          class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <i class="fa-solid fa-microphone-lines text-lg sm:text-xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">VoicePad</h1>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Speak naturally. Save instantly. Works
+            offline.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between w-full sm:w-auto gap-2.5">
+        <!-- Offline Mode Badge -->
+        <!-- <div id="offlineBadge"
+          class="hidden items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 text-xs font-semibold shadow-sm">
+          <i class="fa-solid fa-plane text-[10px]"></i>
+          <span>Offline</span>
+        </div> -->
+
+        <!-- Live Status Pill (Mobile-Safe Header Placement) -->
+        <div id="statusIndicator"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium shadow-sm transition-all">
+          <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+          <span id="statusText" class="text-slate-700 dark:text-slate-200">Idle</span>
+        </div>
+
+        <!-- Install PWA App Button (visible only on real phones) -->
+        <button id="installAppBtn"
+          class="hidden md:!hidden items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 transition-all"
+          title="Install VoicePad App">
+          <i class="fa-solid fa-arrow-down-to-bracket text-xs"></i>
+          <span>Install</span>
         </button>
-        <!-- Settings Toggle -->
-        <button id="settingsToggleBtn" class="p-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 text-lg transition-all" title="AI Configuration">
-          ⚙️
-        </button>
-        
-        <div id="statusIndicator" class="fixed top-6 right-6 flex items-center gap-3 px-4 py-2 rounded-full bg-slate-200 dark:bg-slate-800 shadow-md text-sm font-medium z-50">
-          <span id="statusDot" class="w-3 h-3 rounded-full bg-slate-400 animate-pulse"></span>
-          <span id="statusText" class="dark:text-white">Idle</span>
+
+        <div class="flex items-center gap-2">
+          <!-- Theme Toggle -->
+          <button id="themeToggleBtn" aria-label="Toggle theme"
+            class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-all text-sm"
+            title="Toggle Light/Dark Mode">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+
+          <!-- Settings Toggle -->
+          <button id="settingsToggleBtn" aria-label="Open settings"
+            class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-all text-sm"
+            title="Settings & AI Config">
+            <i class="fa-solid fa-gear"></i>
+          </button>
         </div>
       </div>
     </header>
 
-    <main class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-      <!-- Draft Editor -->
-      <section class="lg:col-span-7 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 flex flex-col gap-6">
-        <input type="text" id="titleInput" placeholder="Note Title..." 
-          class="text-3xl font-bold focus:outline-none placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-transparent w-full dark:text-white">
+    <!-- Main Content Area -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 flex-1">
 
-        <div class="flex flex-wrap items-center gap-4 border-y border-slate-100 dark:border-slate-700 py-3">
-          <select id="languageSelect" class="bg-transparent text-sm font-medium text-slate-600 dark:text-slate-300 focus:outline-none">
-            <option value="en-US">English (US)</option>
-            <option value="en-GB">English (UK)</option>
-            <option value="hi-IN">Hindi</option>
-            <option value="fr-FR">French</option>
-            <option value="es-ES">Spanish</option>
-            <option value="de-DE">German</option>
-          </select>
-          <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
-          <div class="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="autoPunctuateToggle" checked class="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 bg-transparent">
-              <span>Auto-Punctuate</span>
-            </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="autoCapitalizeToggle" checked class="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 bg-transparent">
-              <span>Auto-Capitalize</span>
-            </label>
+      <!-- Draft Editor Section -->
+      <section
+        class="lg:col-span-7 bg-white dark:bg-slate-800/95 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 p-4 sm:p-6 md:p-7 flex flex-col gap-4 sm:gap-5">
+
+        <!-- Note Title & Live Stats -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <input type="text" id="titleInput" placeholder="Note Title (e.g., Team Sync, Idea)..."
+            class="text-xl sm:text-2xl font-bold focus:outline-none placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-transparent w-full text-slate-900 dark:text-white">
+
+          <!-- Live Duration & Word Count -->
+          <div class="flex items-center gap-2 shrink-0 text-xs">
+            <span id="recordingTimer"
+              class="hidden items-center gap-1.5 font-mono font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 px-2.5 py-1 rounded-full">
+              <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+              <span id="timerDigits">00:00</span>
+            </span>
+            <span id="statsBadge" class="text-slate-400 dark:text-slate-500 font-medium">0 words</span>
           </div>
-          <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
-          <canvas id="waveform" class="waveform-container w-full max-w-[200px] rounded-md bg-slate-100 dark:bg-slate-750"></canvas>
         </div>
 
-        <textarea id="contentInput" placeholder="Start speaking or type here..." 
-          class="min-h-[300px] text-lg leading-relaxed focus:outline-none resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-transparent w-full rounded-md border border-slate-200 dark:border-slate-700 p-3 dark:text-white"></textarea>
+        <!-- Controls Toolbar (Language, Options, Waveform) -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-y border-slate-100 dark:border-slate-700/80 py-3">
 
-        <div class="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-slate-100 dark:border-slate-700">
-          <div class="flex gap-3">
-            <div class="flex flex-wrap gap-3 justify-center md:justify-start">
-              <!-- Record Button -->
-              <button id="recordBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-md shadow-blue-200 dark:shadow-none">
-                Record
-              </button>
-
-              <!-- Stop Button -->
-              <button id="stopBtn" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-md shadow-red-200 dark:shadow-none">
-                Stop
-              </button>
-
-              <!-- Polish Button -->
-              <button id="polishBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-md shadow-indigo-200 dark:shadow-none" title="Clean grammar and remove filler words">
-                ✨ Clean Text
-              </button>
-
-              <!-- AI Summarize Button -->
-              <button id="summarizeBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-md shadow-purple-200 dark:shadow-none" title="Summarize & Extract Action Items">
-                🧠 AI Summary
-              </button>
-
-              <!-- Clear Button -->
-              <button id="clearBtn" class="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-md shadow-cyan-200 dark:shadow-none">
-                Clear
-              </button>
-
-              <!-- Copy Button -->
-              <button id="copyBtn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-md shadow-green-200 dark:shadow-none">
-                Copy
-              </button>
+          <div class="flex flex-wrap items-center gap-3 text-xs">
+            <!-- Language Select -->
+            <div
+              class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600/80">
+              <i class="fa-solid fa-globe text-slate-400 dark:text-slate-300 text-xs"></i>
+              <select id="languageSelect"
+                class="bg-transparent font-medium text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer text-xs">
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="en-IN">English (India)</option>
+                <option value="hi-IN">Hindi (हिंदी)</option>
+                <option value="es-ES">Spanish (Español)</option>
+                <option value="fr-FR">French (Français)</option>
+                <option value="de-DE">German (Deutsch)</option>
+                <option value="ja-JP">Japanese (日本語)</option>
+                <option value="zh-CN">Chinese (Mandarin)</option>
+              </select>
             </div>
+
+            <!-- Auto-Punctuate & Natural Formatting Toggles -->
+            <label
+              class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 cursor-pointer select-none font-medium hover:text-slate-900 dark:hover:text-white transition-colors">
+              <input type="checkbox" id="autoPunctuateToggle" checked
+                class="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 bg-transparent">
+              <span class="flex items-center gap-1"><i class="fa-solid fa-quote-right text-[10px] text-blue-500"></i>
+                Auto-Punctuate</span>
+            </label>
+
+            <label
+              class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 cursor-pointer select-none font-medium hover:text-slate-900 dark:hover:text-white transition-colors">
+              <input type="checkbox" id="autoCapitalizeToggle" checked
+                class="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 bg-transparent">
+              <span class="flex items-center gap-1"><i class="fa-solid fa-font text-[10px] text-blue-500"></i>
+                Auto-Cap</span>
+            </label>
           </div>
-          <button id="saveBtn" class="bg-slate-900 hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-8 py-2.5 rounded-xl font-medium transition-all">Save Note</button>
+
+          <!-- Waveform Visualizer -->
+          <div class="flex items-center justify-end">
+            <canvas id="waveform" width="220" height="48"
+              class="waveform-canvas w-full sm:w-[180px] h-[40px] rounded-lg bg-slate-100 dark:bg-slate-700/40 border border-slate-200/70 dark:border-slate-700/60"></canvas>
+          </div>
+        </div>
+
+        <!-- Note Textarea with Real-time Speech Sync -->
+        <div class="relative flex-1 flex flex-col">
+          <textarea id="contentInput"
+            placeholder="Start speaking or type your thoughts here... Say 'new line' or 'period' for natural punctuation."
+            class="min-h-[220px] sm:min-h-[280px] md:min-h-[320px] w-full text-base sm:text-lg leading-relaxed focus:outline-none resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-transparent rounded-xl border border-slate-200 dark:border-slate-700 p-3 sm:p-4 text-slate-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 transition-colors"></textarea>
+        </div>
+
+        <!-- Action Buttons Bar -->
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-700/80">
+
+          <!-- Primary Voice Controls & Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <!-- Record Button -->
+            <button id="recordBtn"
+              class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-sm shadow-blue-500/20 text-sm">
+              <i class="fa-solid fa-microphone text-sm"></i>
+              <span>Record</span>
+            </button>
+
+            <!-- Stop Button -->
+            <button id="stopBtn"
+              class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-sm shadow-rose-500/20 text-sm">
+              <i class="fa-solid fa-stop text-sm"></i>
+              <span>Stop</span>
+            </button>
+
+            <!-- Polish / Clean Text Button -->
+            <button id="polishBtn"
+              class="flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-700 dark:hover:bg-slate-650 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-slate-600 px-3.5 py-2.5 rounded-xl font-medium transition-all text-xs sm:text-sm"
+              title="Remove filler words and polish grammar">
+              <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 dark:text-indigo-400"></i>
+              Clean Text
+            </button>
+
+            <!-- AI Summarize Button -->
+            <button id="summarizeBtn"
+              class="flex items-center justify-center gap-1.5 bg-purple-50 hover:bg-purple-100 dark:bg-slate-700 dark:hover:bg-slate-650 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-slate-600 px-3.5 py-2.5 rounded-xl font-medium transition-all text-xs sm:text-sm"
+              title="Summarize & Extract Action Items via AI">
+              <i class="fa-solid fa-brain text-purple-500 dark:text-purple-400"></i>
+              <span>AI Summary</span>
+            </button>
+
+            <!-- Copy Button -->
+            <button id="copyBtn"
+              class="flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-650 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 px-3 py-2.5 rounded-xl font-medium transition-all text-xs sm:text-sm"
+              title="Copy text to clipboard">
+              Copy
+            </button>
+
+            <!-- Clear Button -->
+            <button id="clearBtn"
+              class="flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 dark:bg-slate-700 dark:hover:bg-rose-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 px-3 py-2.5 rounded-xl font-medium transition-all text-xs sm:text-sm"
+              title="Clear current note">
+              Clear
+            </button>
+          </div>
+
+          <!-- Save Note Button -->
+          <button id="saveBtn"
+            class="flex items-center justify-center gap-2 bg-slate-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-sm text-sm shrink-0">
+            <i class="fa-solid fa-floppy-disk text-xs"></i>
+            <span>Save Note</span>
+          </button>
         </div>
 
         <!-- AI Summary Output Section (hidden when empty) -->
-        <div id="aiSummarySection" class="hidden border-t border-slate-100 dark:border-slate-700 pt-6 flex flex-col gap-3">
+        <div id="aiSummarySection"
+          class="hidden border-t border-slate-100 dark:border-slate-700/80 pt-4 flex flex-col gap-3">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-              ✨ AI Summary & Action Items
+            <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-wand-magic-sparkles text-purple-500"></i>
+              AI Summary & Action Items
             </h3>
-            <button id="closeSummaryBtn" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">Close</button>
+            <div class="flex items-center gap-2">
+              <button id="copySummaryBtn"
+                class="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-lg flex items-center gap-1"
+                title="Copy AI Summary">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+              <button id="closeSummaryBtn"
+                class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg"
+                title="Close summary">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
           </div>
-          <div id="aiSummaryContent" class="prose prose-slate dark:prose-invert max-w-none text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-905/50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 whitespace-pre-wrap"></div>
+          <div id="aiSummaryContent"
+            class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700 whitespace-pre-wrap">
+          </div>
         </div>
       </section>
 
-      <!-- Notes List -->
-      <section class="lg:col-span-5 flex flex-col gap-6">
-        <!-- Voice Commands Card -->
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl border border-blue-100 dark:border-slate-700 p-5 shadow-sm">
-          <h3 class="text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-2 flex items-center gap-1.5">
-            🎙️ Voice Commands Guide
-          </h3>
-          <ul class="text-xs text-indigo-700 dark:text-indigo-400 space-y-1.5">
-            <li>🗣️ Say <code class="bg-white/80 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-bold dark:text-white">"new line"</code> or <code class="bg-white/80 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-bold dark:text-white">"new paragraph"</code> to break lines</li>
-            <li>🗣️ Say <code class="bg-white/80 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-bold dark:text-white">"delete last word"</code> or <code class="bg-white/80 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-bold dark:text-white">"delete word"</code></li>
-            <li>🗣️ Say <code class="bg-white/80 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-bold dark:text-white">"clear note"</code> or <code class="bg-white/80 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-bold dark:text-white">"clear all"</code></li>
-          </ul>
+      <!-- Sidebar: Notes List & Guide -->
+      <section class="lg:col-span-5 flex flex-col gap-5">
+
+        <!-- Voice Commands Guide Accordion (Mobile Compact) -->
+        <details
+          class="group bg-gradient-to-br from-indigo-50/70 to-blue-50/70 dark:from-slate-800/90 dark:to-slate-800/50 rounded-2xl border border-indigo-100 dark:border-slate-700/80 p-4 transition-all shadow-sm">
+          <summary
+            class="flex items-center justify-between cursor-pointer font-semibold text-indigo-950 dark:text-indigo-300 text-sm select-none list-none">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-headset text-indigo-500 dark:text-indigo-400 text-sm"></i>
+              Voice Commands & Tips
+            </span>
+            <div class="flex items-center gap-2 text-xs text-indigo-500 dark:text-indigo-400 font-normal">
+              <span>View guide</span>
+              <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200 group-open:rotate-180"></i>
+            </div>
+          </summary>
+
+          <div
+            class="mt-3 pt-3 border-t border-indigo-100/80 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-2">
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-arrow-turn-down text-indigo-500 mt-0.5"></i>
+              <span>Say <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"new line"</code>
+                or <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"new paragraph"</code></span>
+            </div>
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-quote-left text-indigo-500 mt-0.5"></i>
+              <span>Say <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"period"</code>,
+                <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"comma"</code>,
+                <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"question mark"</code></span>
+            </div>
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-stop text-rose-500 mt-0.5"></i>
+              <span>Say <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"stop recording"</code>
+                or <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"stop listening"</code>
+                to finish hands-free</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-delete-left text-indigo-500 mt-0.5"></i>
+              <span>Say <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"delete last word"</code>
+                or <code
+                  class="bg-white/90 dark:bg-slate-700 px-1 py-0.5 rounded font-mono font-semibold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600">"clear note"</code></span>
+            </div>
+            <div
+              class="flex items-start gap-2 pt-1 border-t border-indigo-100/60 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
+              <i class="fa-solid fa-keyboard text-slate-400 mt-0.5"></i>
+              <span>Shortcuts: <kbd
+                  class="px-1 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-mono">Space</kbd>
+                (toggle record), <kbd
+                  class="px-1 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-mono">Ctrl/Cmd+S</kbd>
+                (save)</span>
+            </div>
+          </div>
+        </details>
+
+        <!-- Saved Notes Section -->
+        <div
+          class="bg-white dark:bg-slate-800/95 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5 flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base sm:text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+              <i class="fa-solid fa-book-bookmark text-blue-500 text-sm"></i>
+              <span>Saved Notes</span>
+              <span id="noteCount"
+                class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">0</span>
+            </h2>
+
+            <!-- Export Notes Button -->
+            <button id="exportNotesBtn"
+              class="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 transition-all"
+              title="Export all notes as JSON">
+              <i class="fa-solid fa-download text-[11px]"></i>
+              <span>Export</span>
+            </button>
+          </div>
+
+          <!-- Notes Search Bar -->
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="searchNotesInput" placeholder="Search saved notes..."
+              class="w-full text-xs pl-8 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
+          </div>
+
+          <!-- Notes Cards Container -->
+          <div id="notesList" class="flex flex-col gap-3 max-h-[48vh] sm:max-h-[55vh] overflow-y-auto pr-1">
+            <!-- Dynamically populated -->
+          </div>
         </div>
 
-        <div>
-          <h2 class="text-xl font-semibold mb-6 flex items-center gap-2 dark:text-white">
-            Saved Notes 
-            <span id="noteCount" class="text-sm font-normal text-slate-400 bg-slate-100 dark:bg-slate-850 dark:bg-slate-700 px-2 py-0.5 rounded-md">0</span>
-          </h2>
-          <div id="notesList" class="grid gap-4 max-h-[50vh] overflow-y-auto pr-2"></div>
-        </div>
       </section>
     </main>
+
+    <!-- Footer -->
+    <footer
+      class="mt-8 pt-4 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400 dark:text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>© VoicePad. Private & Offline-capable Voice Memo.</p>
+      <div class="flex items-center gap-4">
+        <span class="flex items-center gap-1"><i class="fa-solid fa-shield-halved text-green-500 text-[11px]"></i>
+          Stored in local browser</span>
+        <span class="flex items-center gap-1"><i class="fa-solid fa-bolt text-blue-500 text-[11px]"></i> Offline
+          Ready</span>
+      </div>
+    </footer>
   </div>
 
   <!-- Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-    <div class="bg-white dark:bg-slate-850 dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full mx-4 p-6 flex flex-col gap-6">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xl font-bold dark:text-white">AI Configuration ⚙️</h3>
-        <button id="closeSettingsBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">×</button>
+  <div id="settingsModal"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 flex flex-col gap-5">
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-2">
+          <div
+            class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+            <i class="fa-solid fa-sliders text-sm"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">Settings & AI Configuration</h3>
+        </div>
+        <button id="closeSettingsBtn"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 text-sm transition-all"
+          title="Close modal">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
       </div>
 
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-4 text-xs sm:text-sm">
+        <!-- AI Provider Select -->
         <div class="flex flex-col gap-1.5">
-          <label for="aiProviderSelect" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">AI Service Provider</label>
-          <select id="aiProviderSelect" class="bg-slate-150 dark:bg-slate-700 text-sm font-medium border border-slate-200 dark:border-slate-600 rounded-xl p-3 focus:outline-none dark:text-white">
-            <option value="gemini">Gemini API (Google)</option>
-            <option value="openai">ChatGPT API (OpenAI)</option>
+          <label for="aiProviderSelect"
+            class="font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-robot text-blue-500"></i> AI Service Provider
+          </label>
+          <select id="aiProviderSelect"
+            class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <option value="gemini">Google Gemini API (Gemini 1.5 Flash)</option>
+            <option value="openai">OpenAI ChatGPT API (GPT-4o mini)</option>
           </select>
         </div>
 
+        <!-- API Key Input -->
         <div class="flex flex-col gap-1.5">
-          <label for="apiKeyInput" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">API Key</label>
-          <input type="password" id="apiKeyInput" placeholder="Paste your API key here..."
-            class="bg-slate-100 dark:bg-slate-700 text-sm border border-slate-200 dark:border-slate-600 rounded-xl p-3 focus:outline-none dark:text-white">
-          <p class="text-[10px] text-slate-400 dark:text-slate-500">Your key is stored only on this browser and calls are made directly to the AI provider.</p>
+          <label for="apiKeyInput" class="font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-key text-blue-500"></i> AI API Key
+          </label>
+          <div class="relative">
+            <input type="password" id="apiKeyInput" placeholder="Paste your Gemini or OpenAI API key..."
+              class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-2.5 pr-10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <button id="toggleApiKeyVisibility" type="button"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-400 dark:text-slate-500">Your key is stored securely in your browser's
+            LocalStorage and used only for client-side API requests.</p>
+        </div>
+
+        <!-- Spoken Punctuation & Mobile Sleep Preferences -->
+        <div class="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-slate-700/80">
+          <span class="font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-microphone-lines text-blue-500"></i> Speech Recognition Mode
+          </span>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="spokenPunctuationToggle" checked
+              class="w-4 h-4 rounded text-blue-600 border-slate-300 dark:border-slate-600 bg-transparent">
+            <span class="text-slate-700 dark:text-slate-300">Convert spoken punctuation words (e.g., saying "period",
+              "comma", "question mark") into symbols</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="wakeLockToggle" checked
+              class="w-4 h-4 rounded text-blue-600 border-slate-300 dark:border-slate-600 bg-transparent">
+            <span class="text-slate-700 dark:text-slate-300">Prevent mobile screen from sleeping while recording (Screen
+              WakeLock)</span>
+          </label>
         </div>
       </div>
 
-      <div class="flex gap-3 justify-end mt-2">
-        <button id="cancelSettingsBtn" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 text-sm transition-all dark:text-slate-300">Cancel</button>
-        <button id="saveSettingsBtn" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-medium text-sm transition-all">Save Changes</button>
+      <!-- Modal Footer -->
+      <div class="flex gap-2.5 justify-end pt-3 border-t border-slate-100 dark:border-slate-700">
+        <button id="cancelSettingsBtn"
+          class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 text-xs sm:text-sm transition-all text-slate-600 dark:text-slate-300">Cancel</button>
+        <button id="saveSettingsBtn"
+          class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm transition-all shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-check text-xs"></i>
+          <span>Save Changes</span>
+        </button>
       </div>
     </div>
   </div>
@@ -217,12 +598,14 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-FV1KFFW8WB"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-
     gtag('config', 'G-FV1KFFW8WB');
   </script>
 
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4918045934567366"
+    crossorigin="anonymous"></script>
 
 </body>
+
 </html>
